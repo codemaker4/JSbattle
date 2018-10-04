@@ -57,12 +57,14 @@ class player {
     }
   }
   render(){
-    push();
-      translate(cameraX + (this.xPos - cameraX), cameraY + (this.yPos - cameraY)); // move (0,0) to me
-      rotate(-this.fireDirection); // rotate me
-      fill(this.hue, this.health, 50); // pick my color
-      rect(0, 0, playerSize, playerSize); // render me
-    pop(); // leave render settings as if this never happened
+    if (this.xPos + playerSize - cameraX > 0 && this.yPos + playerSize - cameraY > 0 && this.xPos - playerSize - cameraX < xScreenSize && this.yPos - playerSize - cameraY < yScreenSize) {
+      push();
+        translate(cameraX + (this.xPos - cameraX), cameraY + (this.yPos - cameraY)); // move (0,0) to me
+        rotate(-this.fireDirection); // rotate me
+        fill(this.hue, this.health, 50); // pick my color
+        rect(0, 0, playerSize, playerSize); // render me
+      pop(); // leave render settings as if this never happened
+    }
   }
 }
 
@@ -81,8 +83,10 @@ class bullet{
     this.timeLeft -= 1; // age
   }
   render() {
-    fill(this.hue,100,50); // render
-    rect(this.xPos, this.yPos, bulletSize, bulletSize);
+    if (this.xPos + bulletSize - cameraX > 0 && this.yPos + bulletSize - cameraY > 0 && this.xPos - bulletSize - cameraX < xScreenSize && this.yPos - bulletSize - cameraY < yScreenSize) {
+      fill(this.hue,100,50,this.timeLeft); // render
+      rect(this.xPos, this.yPos, bulletSize, bulletSize);
+    }
   }
 }
 
@@ -99,7 +103,9 @@ class particle{
     this.xPos += this.xSpeed; // move
     this.yPos += this.ySpeed;
     this.timeLeft -= 1; // age
-    fill(this.hue, this.timeLeft, 50, this.timeLeft); // render
-    rect(this.xPos, this.yPos, bulletSize, bulletSize);
+    if (this.xPos + bulletSize - cameraX > 0 && this.yPos + bulletSize - cameraY > 0 && this.xPos - bulletSize - cameraX < xScreenSize && this.yPos - bulletSize - cameraY < yScreenSize) {
+      fill(this.hue, this.timeLeft, 50, this.timeLeft); // render
+      rect(this.xPos, this.yPos, bulletSize, bulletSize);
+    }
   }
 }

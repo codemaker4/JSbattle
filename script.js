@@ -9,9 +9,10 @@ var walkSpeed = 1;
 var buletSpeed = 10;
 var reloadTime = 30;
 var bulletSpeed = 20;
-var bulletAliveTime = 200;
+var bulletAliveTime = 100;
 var bulletSize = 10;
 var playerSize = 50;
+var playerSpawnSpread = 5000;
 
 var grassTile;
 var backGroundTileSize = 400;
@@ -36,6 +37,10 @@ function newPlayer(xPos, yPos, hue) { // summons a new player
   players[players.length] = new player(xPos, yPos, hue);
 }
 
+function newPlayerInMap() {
+  newPlayer(random(-playerSpawnSpread, playerSpawnSpread), random(-playerSpawnSpread, playerSpawnSpread), random(100));
+}
+
 function fireBullet(xPos, yPos, direction, hue) { // summons a new bullet
   bullets[bullets.length] = new bullet(xPos + sin(direction)*(playerSize/2), yPos + cos(direction)*(playerSize/2), direction + random(-0.2,0.2),  hue);
 }
@@ -48,8 +53,8 @@ function spreadParticles(xPos, yPos, hue) { // summs 10 partices slowly moving a
 
 function doCamera() { // calculates the camera
   if (players[cameraFollows] !== undefined) {
-    cameraX = smoothChange(cameraX, players[cameraFollows].xPos - (xScreenSize/2) + sin(players[cameraFollows].fireDirection)*250, 40);
-    cameraY = smoothChange(cameraY, players[cameraFollows].yPos - (yScreenSize/2) + cos(players[cameraFollows].fireDirection)*250, 40);
+    cameraX = smoothChange(cameraX, players[cameraFollows].xPos - (xScreenSize/2) + sin(players[cameraFollows].fireDirection)*150, 40);
+    cameraY = smoothChange(cameraY, players[cameraFollows].yPos - (yScreenSize/2) + cos(players[cameraFollows].fireDirection)*150, 40);
   } else {
     // cameraFollows = floor(random(players.length));
   }
@@ -70,8 +75,8 @@ function setup() { // p5 setup
   rectMode(CENTER);
   noStroke();
   noSmooth();
-  for (var i = 0; i < 10; i ++) {
-    newPlayer(random(xScreenSize), random(yScreenSize), random(100));
+  for (var i = 0; i < 100; i ++) {
+    newPlayerInMap();
   }
   grassTile = loadImage("images/stoneTile.png");
 }
@@ -100,7 +105,7 @@ function draw() { // loop
         }
         cameraFollows = closestID; // follow closest
       }
-      newPlayer(random(xScreenSize), random(yScreenSize), random(100)); // summon new player
+      newPlayerInMap(); // summon new player to compensate for the killed one
       i -= 1; // shift loop variable to compensate for the deleted item
     } else {
       players[i].render();// if player did not die, render it
