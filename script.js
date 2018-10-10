@@ -13,13 +13,18 @@ var bulletAliveTime = 100;
 var bulletSize = 10;
 var playerSize = 50;
 var playerSpawnSpread = 5000;
+var humanPlayerSpawnRequest = false;
 
 var grassTile;
+var stoneTile;
+var playerTextures = [];
 var backGroundTileSize = 400;
 
 var players = [];
 var bullets = [];
 var particles = [];
+
+var zoom = 2;
 
 function isPosit(x) { // returns true if x is 0 or higher
   return (x>=0);
@@ -33,12 +38,24 @@ function smoothChange(now, goal, iterations) { // a = smoothChange(a, 10, 10)   
   return(now+((goal-now)/iterations));
 }
 
-function newPlayer(xPos, yPos, hue) { // summons a new player
-  players[players.length] = new player(xPos, yPos, hue);
+function newAIPlayer(xPos, yPos, hue) { // summons a new player
+  players[players.length] = new AIPlayer(xPos, yPos, hue);
+}
+
+function newHumanPlayer(xPos, yPos, hue) {
+  players[players.length] = new humanPlayer(xPos, yPos, hue);
+  humanPlayerSpawnRequest = false;
+  cameraFollows = players.length-1;
+  cameraX = xPos - xScreenSize/2/zoom;
+  cameraY = yPos - yScreenSize/2/zoom;
 }
 
 function newPlayerInMap() {
-  newPlayer(random(-playerSpawnSpread, playerSpawnSpread), random(-playerSpawnSpread, playerSpawnSpread), random(100));
+  if (humanPlayerSpawnRequest === true) {
+    newHumanPlayer(random(-playerSpawnSpread, playerSpawnSpread), random(-playerSpawnSpread, playerSpawnSpread), random(100));
+  } else {
+    newAIPlayer(random(-playerSpawnSpread, playerSpawnSpread), random(-playerSpawnSpread, playerSpawnSpread), random(100));
+  }
 }
 
 function fireBullet(xPos, yPos, direction, hue) { // summons a new bullet
@@ -53,8 +70,8 @@ function spreadParticles(xPos, yPos, hue) { // summs 10 partices slowly moving a
 
 function doCamera() { // calculates the camera
   if (players[cameraFollows] !== undefined) {
-    cameraX = smoothChange(cameraX, players[cameraFollows].xPos - (xScreenSize/2) + sin(players[cameraFollows].fireDirection)*150, 40);
-    cameraY = smoothChange(cameraY, players[cameraFollows].yPos - (yScreenSize/2) + cos(players[cameraFollows].fireDirection)*150, 40);
+    cameraX = smoothChange(cameraX, players[cameraFollows].xPos - (xScreenSize/2) + sin(players[cameraFollows].fireDirection)*150 + players[cameraFollows].xSpeed*50, 100);
+    cameraY = smoothChange(cameraY, players[cameraFollows].yPos - (yScreenSize/2) + cos(players[cameraFollows].fireDirection)*150 + players[cameraFollows].ySpeed*50, 100);
   } else {
     // cameraFollows = floor(random(players.length));
   }
@@ -64,13 +81,19 @@ function doCamera() { // calculates the camera
 function drawBackground() { // renders the background tiles
   for (var x = cameraX-(cameraX%backGroundTileSize)-backGroundTileSize; x < cameraX+xScreenSize; x += backGroundTileSize) {
     for (var y = cameraY-(cameraY%backGroundTileSize)-backGroundTileSize; y < cameraY+yScreenSize; y += backGroundTileSize) {
-      image(grassTile, x , y, backGroundTileSize, backGroundTileSize);
+      if (abs(x) < playerSpawnSpread && abs(y) < playerSpawnSpread) {
+        image(grassTile, x , y, backGroundTileSize, backGroundTileSize);
+      } else {
+        image(stoneTile, x , y, backGroundTileSize, backGroundTileSize);
+      }
     }
   }
 }
 
 function setup() { // p5 setup
   createCanvas(xScreenSize, yScreenSize);
+  xScreenSize = xScreenSize*zoom;
+  yScreenSize = yScreenSize*zoom;
   colorMode(HSL, 100, 100, 100, 100);
   rectMode(CENTER);
   noStroke();
@@ -78,14 +101,19 @@ function setup() { // p5 setup
   for (var i = 0; i < 100; i ++) {
     newPlayerInMap();
   }
-  grassTile = loadImage("images/stoneTile.png");
+  grassTile = loadImage("images/grassTile.png");
+  stoneTile = loadImage("images/stoneTile.png");
+  playerTextures = [loadImage("images/BotPlayer.png")];
 }
 
 function draw() { // loop
+  scale(1/zoom);
   doCamera(); // move camera
   // background(100);
+  imageMode(CORNER);
   drawBackground(); // render backbround
 
+  imageMode(CENTER);
   for (var i = 0; i < players.length; i ++) { // loop trought players
     players[i].tick(); // move player
     if (players[i].health <= 0) { // if player is dead
@@ -112,6 +140,7 @@ function draw() { // loop
     }
   }
 
+  stroke(0);
   for (var i = 0; i < bullets.length; i ++) { // loop trought bullets
     bullets[i].tick();  // move bullet
     if (bullets[i].timeLeft <= 0) { // if bullet si dead
@@ -121,6 +150,7 @@ function draw() { // loop
       bullets[i].render(); // if bullet did not die, render it
     }
   }
+  noStroke();
 
   for (var i = 0; i < particles.length; i++) { // loop trought particles
     particles[i].draw(); // render+move partocles
