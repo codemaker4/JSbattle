@@ -5,20 +5,20 @@ var cameraY = 0;
 var cameraFollows = 0;
 var playerFriction = 0.7;
 var playerHealth = 100;
-var walkSpeed = 1;
+var walkSpeed = 1.5;
 var buletSpeed = 10;
 var reloadTime = 30;
 var bulletSpeed = 20;
 var bulletAliveTime = 100;
-var bulletSize = 10;
-var playerSize = 50;
+var bulletSize = 20;
+var playerSize = 100;
 var playerSpawnSpread = 5000;
 var humanPlayerSpawnRequest = false;
 
 var grassTile;
 var stoneTile;
 var playerTextures = [];
-var backGroundTileSize = 400;
+var backGroundTileSize = 750;
 
 var players = [];
 var bullets = [];
@@ -79,13 +79,10 @@ function doCamera() { // calculates the camera
 }
 
 function drawBackground() { // renders the background tiles
+  tint(frameCount/50, 100, 50);
   for (var x = cameraX-(cameraX%backGroundTileSize)-backGroundTileSize; x < cameraX+xScreenSize; x += backGroundTileSize) {
     for (var y = cameraY-(cameraY%backGroundTileSize)-backGroundTileSize; y < cameraY+yScreenSize; y += backGroundTileSize) {
-      if (abs(x) < playerSpawnSpread && abs(y) < playerSpawnSpread) {
-        image(grassTile, x , y, backGroundTileSize, backGroundTileSize);
-      } else {
-        image(stoneTile, x , y, backGroundTileSize, backGroundTileSize);
-      }
+      image(neonTile, x , y, backGroundTileSize, backGroundTileSize);
     }
   }
 }
@@ -98,12 +95,12 @@ function setup() { // p5 setup
   rectMode(CENTER);
   noStroke();
   noSmooth();
+  pixelDensity(1);
+  playerTextures = [loadImage("images/players/BotPlayer.png"), loadImage("images/players/player_00.png"), loadImage("images/players/player_01.png"), loadImage("images/players/player_02.png"), loadImage("images/players/player_03.png"), loadImage("images/players/player_04.png"), loadImage("images/players/player_05.png"), loadImage("images/players/player_06.png"), loadImage("images/players/player_07.png"), loadImage("images/players/player_08.png"), loadImage("images/players/player_09.png")];
   for (var i = 0; i < 100; i ++) {
     newPlayerInMap();
   }
-  grassTile = loadImage("images/grassTile.png");
-  stoneTile = loadImage("images/stoneTile.png");
-  playerTextures = [loadImage("images/BotPlayer.png")];
+  neonTile = loadImage("images/neon background-1.png");
 }
 
 function draw() { // loop
@@ -112,8 +109,21 @@ function draw() { // loop
   // background(100);
   imageMode(CORNER);
   drawBackground(); // render backbround
-
   imageMode(CENTER);
+
+  stroke(0);
+  strokeWeight(2);
+  for (var i = 0; i < bullets.length; i ++) { // loop trought bullets
+    bullets[i].tick();  // move bullet
+    if (bullets[i].timeLeft <= 0) { // if bullet si dead
+      bullets.splice(i, 1); // delete it
+      i -= 1; // shift loop variable to compensate for the deleted item
+    } else {
+      bullets[i].render(); // if bullet did not die, render it
+    }
+  }
+  noStroke();
+
   for (var i = 0; i < players.length; i ++) { // loop trought players
     players[i].tick(); // move player
     if (players[i].health <= 0) { // if player is dead
@@ -140,18 +150,6 @@ function draw() { // loop
     }
   }
 
-  stroke(0);
-  for (var i = 0; i < bullets.length; i ++) { // loop trought bullets
-    bullets[i].tick();  // move bullet
-    if (bullets[i].timeLeft <= 0) { // if bullet si dead
-      bullets.splice(i, 1); // delete it
-      i -= 1; // shift loop variable to compensate for the deleted item
-    } else {
-      bullets[i].render(); // if bullet did not die, render it
-    }
-  }
-  noStroke();
-
   for (var i = 0; i < particles.length; i++) { // loop trought particles
     particles[i].draw(); // render+move partocles
     if (particles[i].timeLeft <= 0) { // if particle is done
@@ -161,4 +159,11 @@ function draw() { // loop
   }
   // fill(0);
   // rect(0,0,10,10);
+  if (frameCount == 100) {
+    if (frameRate() < 20) {
+      pixelDensity(1/3);
+    } else if (frameRate() < 40) {
+      pixelDensity(0.6);
+    }
+  }
 }
