@@ -14,6 +14,8 @@ var bulletSize = 20;
 var playerSize = 100;
 var playerSpawnSpread = 5000;
 var humanPlayerSpawnRequest = false;
+var nowFramerate = 0;
+var myNowPixelDensity = 1;
 
 var grassTile;
 var stoneTile;
@@ -97,7 +99,7 @@ function setup() { // p5 setup
   noSmooth();
   pixelDensity(1);
   playerTextures = [loadImage("images/players/BotPlayer.png"), loadImage("images/players/player_00.png"), loadImage("images/players/player_01.png"), loadImage("images/players/player_02.png"), loadImage("images/players/player_03.png"), loadImage("images/players/player_04.png"), loadImage("images/players/player_05.png"), loadImage("images/players/player_06.png"), loadImage("images/players/player_07.png"), loadImage("images/players/player_08.png"), loadImage("images/players/player_09.png")];
-  for (var i = 0; i < 100; i ++) {
+  for (var i = 0; i < 50; i ++) {
     newPlayerInMap();
   }
   neonTile = loadImage("images/neon background-1.png");
@@ -143,6 +145,11 @@ function draw() { // loop
         }
         cameraFollows = closestID; // follow closest
       }
+      for (var j = 0; j < players.length; j++) {
+        if (players[j].nowTargeting > i) {
+          players[j].nowTargeting -= 1;
+        }
+      }
       newPlayerInMap(); // summon new player to compensate for the killed one
       i -= 1; // shift loop variable to compensate for the deleted item
     } else {
@@ -159,11 +166,17 @@ function draw() { // loop
   }
   // fill(0);
   // rect(0,0,10,10);
-  if (frameCount == 100) {
-    if (frameRate() < 20) {
-      pixelDensity(1/3);
-    } else if (frameRate() < 40) {
-      pixelDensity(0.6);
+  if (frameCount%60 == 1) {
+    nowFramerate = round(frameRate());
+    if (nowFramerate < 40 && myNowPixelDensity > 0.21) {
+      myNowPixelDensity -= 0.1;
+      pixelDensity(myNowPixelDensity);
+    } else if (nowFramerate > 50 && myNowPixelDensity < 1) {
+      myNowPixelDensity += 0.1;
+      pixelDensity(myNowPixelDensity);
     }
   }
+  fill(255);
+  textSize(100);
+  text(nowFramerate,cameraX,cameraY+100)
 }
