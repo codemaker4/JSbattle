@@ -1,5 +1,5 @@
 function playerRender(obToControll) {
-  if (obToControll.xPos + playerSize - cameraX > 0 && obToControll.yPos + playerSize - cameraY > 0 && obToControll.xPos - playerSize - cameraX < xScreenSize && obToControll.yPos - playerSize - cameraY < yScreenSize) {
+  if (onScreen(obToControll)) {
     push();
       translate(cameraX + (obToControll.xPos - cameraX), cameraY + (obToControll.yPos - cameraY)); // move (0,0) to me
       rotate(-obToControll.fireDirection + PI); // rotate me
@@ -24,6 +24,7 @@ class AIPlayer {
     this.closestPlayerSQDist = Infinity;
     this.playerLook = floor(random(0,playerTextures.length));
     this.frameOffset = floor(random(60));
+    this.isPlayer = false;
   }
   tick() {
     if ((frameCount+this.frameOffset)%30 == 0) {
@@ -88,6 +89,7 @@ class humanPlayer {
     this.health = playerHealth;
     this.fireDirection = 0;
     this.playerLook = floor(random(0,playerTextures.length));
+    this.isPlayer = true;
   }
   tick() {
     if (keyIsDown(87)) { // W
@@ -101,7 +103,7 @@ class humanPlayer {
       this.xSpeed += walkSpeed;
     }
 
-    this.fireDirection = atan2(-((mouseX+cameraX)-(xScreenSize/2)), -((mouseY+cameraY)-(yScreenSize/2)));
+    this.fireDirection = atan2((mouseX*zoom)+cameraX-this.xPos, (mouseY*zoom)+cameraY-this.yPos);
     if (this.reload <= 0 && mouseIsPressed) { // if can fire
       fireBullet(this.xPos, this.yPos, this.fireDirection, this.hue); // fire bullet
       this.reload = reloadTime; // start reloading
@@ -143,7 +145,7 @@ class bullet{
     this.timeLeft -= 1; // age
   }
   render() {
-    if (this.xPos + bulletSize - cameraX > 0 && this.yPos + bulletSize - cameraY > 0 && this.xPos - bulletSize - cameraX < xScreenSize && this.yPos - bulletSize - cameraY < yScreenSize) {
+    if (onScreen(this)) {
       fill(this.hue,100,50,this.timeLeft); // render
       rect(this.xPos, this.yPos, bulletSize, bulletSize);
     }
@@ -163,7 +165,7 @@ class particle{
     this.xPos += this.xSpeed; // move
     this.yPos += this.ySpeed;
     this.timeLeft -= 1; // age
-    if (this.xPos + bulletSize - cameraX > 0 && this.yPos + bulletSize - cameraY > 0 && this.xPos - bulletSize - cameraX < xScreenSize && this.yPos - bulletSize - cameraY < yScreenSize) {
+    if (onScreen(this)) {
       fill(this.hue, this.timeLeft, 50, this.timeLeft); // render
       rect(this.xPos, this.yPos, bulletSize, bulletSize);
     }

@@ -16,6 +16,8 @@ var playerSpawnSpread = 5000;
 var humanPlayerSpawnRequest = false;
 var nowFramerate = 0;
 var myNowPixelDensity = 1;
+var nowBackgroundHue = 0;
+var framesSinceLastKill = 0;
 
 var grassTile;
 var stoneTile;
@@ -28,16 +30,16 @@ var particles = [];
 
 var zoom = 2;
 
-function isPosit(x) { // returns true if x is 0 or higher
-  return (x>=0);
-}
-
 function SQdist(x1,y1,x2,y2) { // returns distances between 2 objects (objects need .x and .y properties for this to work)
   return(sq(x2-x1) + sq(y2-y1));
 }
 
 function smoothChange(now, goal, iterations) { // a = smoothChange(a, 10, 10)   smoothens change of a variable
   return(now+((goal-now)/iterations));
+}
+
+function onScreen(obToCheck) {
+  return(obToCheck.xPos > cameraX-playerSize && obToCheck.xPos < cameraX+xScreenSize+playerSize && obToCheck.yPos > cameraY-playerSize && obToCheck.yPos < cameraY+yScreenSize+playerSize);
 }
 
 function newAIPlayer(xPos, yPos, hue) { // summons a new player
@@ -81,10 +83,19 @@ function doCamera() { // calculates the camera
 }
 
 function drawBackground() { // renders the background tiles
-  tint(frameCount/50, 100, 50);
+  nowBackgroundHue = hue(lerpColor(color(nowBackgroundHue, 100, 50), color(players[cameraFollows].hue, 100, 50), framesSinceLastKill/10000));
+  tint(nowBackgroundHue, 100, 50);
   for (var x = cameraX-(cameraX%backGroundTileSize)-backGroundTileSize; x < cameraX+xScreenSize; x += backGroundTileSize) {
     for (var y = cameraY-(cameraY%backGroundTileSize)-backGroundTileSize; y < cameraY+yScreenSize; y += backGroundTileSize) {
       image(neonTile, x , y, backGroundTileSize, backGroundTileSize);
+    }
+  }
+}
+
+function keyPressed() {
+  if (keyCode == 32) {
+    if (players[cameraFollows].isPlayer !== true) {
+      humanPlayerSpawnRequest = true;
     }
   }
 }
@@ -129,7 +140,9 @@ function draw() { // loop
   for (var i = 0; i < players.length; i ++) { // loop trought players
     players[i].tick(); // move player
     if (players[i].health <= 0) { // if player is dead
-      spreadParticles(players[i].xPos, players[i].yPos, players[i].hue); // spread particles
+      if (onScreen(players[i])) {
+        spreadParticles(players[i].xPos, players[i].yPos, players[i].hue); // spread particles
+      }
       players.splice(i, 1);// delete player object
       if (cameraFollows > i) { // shift camera follow ID if needed
         cameraFollows -= 1;
@@ -151,6 +164,7 @@ function draw() { // loop
         }
       }
       newPlayerInMap(); // summon new player to compensate for the killed one
+      framesSinceLastKill = 0;
       i -= 1; // shift loop variable to compensate for the deleted item
     } else {
       players[i].render();// if player did not die, render it
@@ -166,17 +180,18 @@ function draw() { // loop
   }
   // fill(0);
   // rect(0,0,10,10);
-  if (frameCount%60 == 1) {
-    nowFramerate = round(frameRate());
-    if (nowFramerate < 40 && myNowPixelDensity > 0.21) {
-      myNowPixelDensity -= 0.1;
-      pixelDensity(myNowPixelDensity);
-    } else if (nowFramerate > 50 && myNowPixelDensity < 1) {
-      myNowPixelDensity += 0.1;
-      pixelDensity(myNowPixelDensity);
-    }
-  }
-  fill(255);
-  textSize(100);
-  text(nowFramerate,cameraX,cameraY+100)
+  // if (frameCount%60 == 1) {
+  //   nowFramerate = round(frameRate());
+  //   if (nowFramerate < 40 && myNowPixelDensity > 0.21) {
+  //     myNowPixelDensity -= 0.1;
+  //     pixelDensity(myNowPixelDensity);
+  //   } else if (nowFramerate > 50 && myNowPixelDensity < 1) {
+  //     myNowPixelDensity += 0.1;
+  //     pixelDensity(myNowPixelDensity);
+  //   }
+  // }
+  // fill(255);
+  // textSize(100);
+  // text(nowFramerate,cameraX,cameraY+100)
+  framesSinceLastKill += 1;
 }
